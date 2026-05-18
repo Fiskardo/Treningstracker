@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0c1110">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Treningscoach">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Halvmaraton Coach</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-label="Oversikt">
+        <div>
+          <p class="eyebrow">Halvmaraton + HYROX</p>
+          <h1>Treningscoach</h1>
+        </div>
+        <div class="top-actions">
+          <button class="icon-button" id="exportBtn" type="button" title="Eksporter CSV" aria-label="Eksporter CSV">
+            <span aria-hidden="true">CSV</span>
+          </button>
+          <label class="icon-button file-button" title="Importer CSV" aria-label="Importer CSV">
+            <span aria-hidden="true">INN</span>
+            <input id="importInput" type="file" accept=".csv,text/csv">
+          </label>
+        </div>
+      </section>
+
+      <section class="coach-grid">
+        <form class="profile-panel" id="profileForm">
+          <div class="panel-heading">
+            <div>
+              <h2>Profil</h2>
+              <p id="profileStatus">Legg inn data for personlige pulssoner.</p>
+            </div>
+            <button class="ghost-button" type="submit">Lagre</button>
+          </div>
+
+          <div class="field-grid compact">
+            <label>
+              Navn
+              <input id="nameInput" name="name" type="text" maxlength="50" placeholder="Navn">
+            </label>
+            <label>
+              Alder
+              <input id="ageInput" name="age" type="number" min="10" max="100" placeholder="35">
+            </label>
+            <label>
+              Vekt
+              <input id="bodyWeightInput" name="bodyWeight" type="number" min="30" max="250" step="0.1" placeholder="78">
+            </label>
+            <label>
+              VO2 maks
+              <input id="vo2Input" name="vo2" type="number" min="10" max="100" step="0.1" placeholder="48">
+            </label>
+            <label>
+              Makspuls
+              <input id="maxHrInput" name="maxHr" type="number" min="100" max="230" placeholder="188">
+            </label>
+            <label>
+              Hvilepuls
+              <input id="restHrInput" name="restHr" type="number" min="30" max="120" placeholder="48">
+            </label>
+            <label>
+              Neste konkurranse
+              <input id="raceNameInput" name="raceName" type="text" maxlength="80" placeholder="F.eks. Oslo halvmaraton">
+            </label>
+            <label>
+              Konkurransedato
+              <input id="raceDateInput" name="raceDate" type="date">
+            </label>
+            <label>
+              Distanse
+              <input id="raceDistanceInput" name="raceDistance" type="number" min="0" max="250" step="0.1" placeholder="21.1">
+            </label>
+          </div>
+          <div class="race-summary" id="raceSummary">
+            <span>Neste konkurranse</span>
+            <strong>Ikke satt</strong>
+            <p>Legg inn dato og distanse for å få nedtelling.</p>
+          </div>
+        </form>
+
+        <section class="zones-panel" aria-label="Pulssoner">
+          <div class="panel-heading">
+            <div>
+              <h2>Pulssoner</h2>
+              <p id="zoneBasis">Bruker makspuls hvis den er satt, ellers 220 minus alder.</p>
+            </div>
+          </div>
+          <div class="zone-list" id="zoneList"></div>
+        </section>
+      </section>
+
+      <section class="plan-panel" aria-label="Ukeplan">
+        <div class="panel-heading">
+          <div>
+            <h2>Ukeplan</h2>
+            <p>Maks fire løpedager, styrke torsdag og en ekstra HYROX-dag.</p>
+          </div>
+          <button class="ghost-button" id="addPlanBtn" type="button">Legg plan i logg</button>
+        </div>
+        <div class="plan-grid" id="planGrid"></div>
+      </section>
+
+      <section class="suggestions-panel" aria-label="Øktforslag">
+        <div class="panel-heading">
+          <div>
+            <h2>Forslag til neste økt</h2>
+            <p id="suggestionSummary">Forslagene justeres etter loggen din og Bakken-inspirert terskelstyring.</p>
+          </div>
+        </div>
+        <div class="suggestion-grid" id="suggestionGrid"></div>
+      </section>
+
+      <section class="workspace">
+        <form class="entry-panel" id="workoutForm">
+          <div class="panel-heading">
+            <h2>Ny økt</h2>
+            <button class="ghost-button" id="clearFormBtn" type="button">Tøm</button>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Dato
+              <input id="dateInput" name="date" type="date" required>
+            </label>
+            <label>
+              Type
+              <select id="typeInput" name="type" required>
+                <option value="Løp">Løp</option>
+                <option value="Styrke">Styrke</option>
+                <option value="HYROX">HYROX</option>
+                <option value="Mobilitet">Mobilitet</option>
+                <option value="Annet">Annet</option>
+              </select>
+            </label>
+            <label class="full">
+              Tittel
+              <input id="titleInput" name="title" type="text" maxlength="60" placeholder="F.eks. terskel 6 x 6 min" required>
+            </label>
+            <label>
+              Varighet
+              <input id="durationInput" name="duration" type="number" min="1" max="600" placeholder="45">
+            </label>
+            <label>
+              Sone
+              <select id="intensityInput" name="intensity">
+                <option value="Sone 1 Restitusjon">Sone 1 Restitusjon</option>
+                <option value="Sone 2 Rolig" selected>Sone 2 Rolig</option>
+                <option value="Sone 3 Maraton">Sone 3 Maraton</option>
+                <option value="Sone 4 Terskel">Sone 4 Terskel</option>
+                <option value="Sone 5 VO2">Sone 5 VO2</option>
+              </select>
+            </label>
+            <label>
+              Km
+              <input id="distanceInput" name="distance" type="number" min="0" max="500" step="0.1" placeholder="8">
+            </label>
+            <label>
+              Gjennomsnittstempo
+              <input id="paceInput" name="pace" type="text" inputmode="numeric" maxlength="8" placeholder="5:15">
+            </label>
+            <label>
+              Oppvarming
+              <input id="warmupInput" name="warmup" type="number" min="0" max="120" placeholder="10">
+            </label>
+            <label>
+              Nedjogg
+              <input id="cooldownInput" name="cooldown" type="number" min="0" max="120" placeholder="10">
+            </label>
+            <label>
+              Sett
+              <input id="setsInput" name="sets" type="number" min="0" max="200" placeholder="12">
+            </label>
+            <label>
+              Reps
+              <input id="repsInput" name="reps" type="number" min="0" max="1000" placeholder="80">
+            </label>
+            <label>
+              Vekt
+              <input id="weightInput" name="weight" type="number" min="0" max="1000" step="0.5" placeholder="60">
+            </label>
+            <label>
+              Pause
+              <input id="restInput" name="rest" type="number" min="0" max="1800" placeholder="60">
+            </label>
+            <label>
+              Snittpuls
+              <input id="avgHrInput" name="avgHr" type="number" min="40" max="230" placeholder="145">
+            </label>
+            <label class="full">
+              Notater
+              <textarea id="notesInput" name="notes" rows="4" maxlength="500" placeholder="Puls, følelse, fart, laktat hvis du måler, eller hva som skal justeres neste gang."></textarea>
+            </label>
+          </div>
+
+          <button class="primary-button" type="submit">Lagre økt</button>
+        </form>
+
+        <section class="timeline-panel" aria-label="Treningshistorikk">
+          <section class="year-panel" aria-label="Årsoppsummering">
+            <article class="year-card">
+              <span>Økter i år</span>
+              <strong id="yearSessions">0</strong>
+            </article>
+            <article class="year-card">
+              <span>Styrke i år</span>
+              <strong id="yearStrengthMinutes">0 min</strong>
+            </article>
+            <article class="year-card">
+              <span>Løp i år</span>
+              <strong id="yearRunMinutes">0 min</strong>
+            </article>
+            <article class="year-card">
+              <span>Mot 150 min/uke</span>
+              <strong id="populationComparison">0 %</strong>
+              <p id="populationNote">Voksne anbefales minst 150 minutter moderat aktivitet per uke.</p>
+            </article>
+            <article class="year-card quote-card">
+              <span>Motivasjon</span>
+              <blockquote id="motivationQuote">Kontrollert innsats slår sporadisk heroisk innsats.</blockquote>
+            </article>
+          </section>
+
+          <div class="panel-heading">
+            <div>
+              <h2>Historikk</h2>
+              <p id="activeSummary">Ingen økter registrert enda.</p>
+            </div>
+            <select id="filterInput" aria-label="Filtrer etter type">
+              <option value="Alle">Alle typer</option>
+              <option value="Løp">Løp</option>
+              <option value="Styrke">Styrke</option>
+              <option value="HYROX">HYROX</option>
+              <option value="Mobilitet">Mobilitet</option>
+              <option value="Annet">Annet</option>
+            </select>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-head">
+              <span>Siste 7 dager</span>
+              <strong id="chartTotal">0 min</strong>
+            </div>
+            <div class="bar-chart" id="barChart" aria-label="Trening de siste syv dagene"></div>
+          </div>
+
+          <div class="empty-state" id="emptyState">
+            <div class="pulse-mark" aria-hidden="true"></div>
+            <h3>Start med dagens økt</h3>
+            <p>Logg løp og styrke, så bygger appen oversikt og ukehistorikk automatisk.</p>
+          </div>
+
+          <div class="workout-list" id="workoutList"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="workoutTemplate">
+      <article class="workout-card">
+        <div class="card-main">
+          <div class="type-dot" aria-hidden="true"></div>
+          <div>
+            <div class="card-topline">
+              <span class="date"></span>
+              <span class="tag"></span>
+            </div>
+            <h3></h3>
+            <p class="notes"></p>
+            <div class="stats-row"></div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="text-button edit" type="button">Rediger</button>
+          <button class="text-button delete" type="button">Slett</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
